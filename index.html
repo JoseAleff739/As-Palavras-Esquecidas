@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>As Palavras Esquecidas</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(to bottom, #f6f1e7, #eaddc1);
+      font-family: 'Georgia', serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    h1 {
+      color: #3e2c1c;
+      margin-top: 40px;
+      text-shadow: 1px 1px 0px #fff;
+      font-size: 2.2em;
+    }
+
+    h2, h3 {
+      color: #3e2c1c;
+      margin: 5px 0;
+    }
+
+    .area-jogo {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #fffaf0;
+      border: 3px solid #c7b299;
+      border-radius: 15px;
+      box-shadow: 0px 0px 20px rgba(0,0,0,0.1);
+      padding: 20px 30px;
+      margin-top: 20px;
+      min-width: 320px;
+    }
+
+    .container-letras {
+      display: flex;
+      gap: 10px;
+      margin: 20px 0;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .letra {
+      background: #fffbe6;
+      border: 2px solid #c7b299;
+      border-radius: 8px;
+      padding: 12px 18px;
+      font-size: 1.5em;
+      cursor: pointer;
+      transition: 0.2s;
+      user-select: none;
+    }
+
+    .letra:hover {
+      background: #f0e4d7;
+      transform: scale(1.1);
+    }
+
+    .letra.usada {
+      opacity: 0;
+      transform: scale(0.7) rotate(-15deg);
+      transition: 0.4s ease;
+    }
+
+    .caixa-resposta {
+      min-height: 40px;
+      font-size: 1.8em;
+      border-bottom: 3px solid #3e2c1c;
+      padding: 10px;
+      text-align: center;
+      margin-top: 10px;
+      letter-spacing: 4px;
+      transition: 0.3s;
+    }
+
+    .mensagem {
+      margin-top: 15px;
+      font-size: 1.2em;
+      color: #3e2c1c;
+      text-align: center;
+      min-height: 1.5em;
+    }
+
+    button {
+      background: #3e2c1c;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      margin-top: 15px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background: #5a3e27;
+    }
+
+    footer {
+      position: absolute;
+      bottom: 10px;
+      font-size: 0.9em;
+      color: #6b5841;
+    }
+
+    #tela-inicial {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: linear-gradient(135deg, #8e7d5a, #c7b299);
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+      text-align: center;
+      z-index: 9999;
+      font-family: 'Georgia', serif;
+    }
+
+    #tela-inicial h1 {
+      font-size: 3em;
+      margin-bottom: 20px;
+      text-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+    }
+
+    #tela-inicial p {
+      font-size: 1.3em;
+      line-height: 1.5;
+      max-width: 500px;
+      margin-bottom: 40px;
+      text-shadow: 1px 1px 3px rgba(0,0,0,0.4);
+    }
+
+    #btn-iniciar {
+      background: #3e2c1c;
+      padding: 15px 40px;
+      font-size: 1.2em;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+      transition: background 0.3s ease;
+    }
+
+    #btn-iniciar:hover {
+      background: #5a3e27;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="tela-inicial">
+    <h1>📖 As Palavras Esquecidas</h1>
+    <p>Bem-vindo ao jogo de caça-palavras embaralhado! Monte as palavras corretas clicando nas letras na ordem certa. Boa sorte!</p>
+    <button id="btn-iniciar">Começar</button>
+  </div>
+
+  <h1>📖 As Palavras Esquecidas</h1>
+  <h2 id="capitulo">Capítulo 1</h2>
+  <h3 id="pontuacao">Pontuação: 0</h3>
+
+  <div class="area-jogo" id="area-jogo">
+    <p>Monte a palavra correta clicando nas letras na ordem certa!</p>
+
+    <div id="caixaResposta" class="caixa-resposta"></div>
+    <div id="containerLetras" class="container-letras"></div>
+    <div id="mensagem" class="mensagem"></div>
+
+    <button id="botaoNovaPalavra">Nova Palavra</button>
+  </div>
+
+  <script>
+
+    const telaInicial = document.getElementById('tela-inicial');
+    const btnIniciar = document.getElementById('btn-iniciar');
+    const areaJogo = document.getElementById('area-jogo');
+
+    areaJogo.style.display = 'none'; 
+    btnIniciar.onclick = () => {
+      telaInicial.style.display = 'none'; 
+      areaJogo.style.display = 'flex';  
+      novaPalavra();
+    };
+
+    let palavras = [
+      "livro","leitura","historia","autor","poeta","conto","verso","frase",
+      "palavra","pagina","titulo","escrita","texto","papel","tinta","caneta",
+      "caderno","biblioteca","livraria","romance","drama","fantasia","misterio",
+      "amor","tempo","mundo","ideia","memoria","poesia","prosa","rima","arte",
+      "sabedoria","ensino","professor","obra","heroi","vilao","trama","tema"
+    ];
+
+    let palavraAtual = "";
+    let embaralhada = [];
+    let resposta = "";
+    let pontuacao = 0;
+    let capitulo = 1;
+    let palavrasCompletas = 0;
+
+    let caixaResposta = document.getElementById("caixaResposta");
+    let containerLetras = document.getElementById("containerLetras");
+    let mensagem = document.getElementById("mensagem");
+    let botaoNovaPalavra = document.getElementById("botaoNovaPalavra");
+    let exibirPontuacao = document.getElementById("pontuacao");
+    let exibirCapitulo = document.getElementById("capitulo");
+
+    function juntarLetras(array) {
+      let resultado = "";
+      for (let i = 0; array[i] !== undefined; i++) {
+        resultado += array[i];
+      }
+      return resultado;
+    }
+
+    function embaralhar(palavra) {
+      let letras = [];
+      for (let i = 0; palavra[i] !== undefined; i++) {
+        letras[i] = palavra.charAt(i);
+      }
+
+      let resultado = [];
+
+      let tamanho = 0;
+      for (let i = 0; letras[i] !== undefined; i++) {
+        tamanho++;
+      }
+
+      for (let i = 0; i < tamanho; i++) {
+        let indiceAleatorio = Math.floor(Math.random() * letras.length);
+        resultado[i] = letras[indiceAleatorio];
+
+        let novaLista = [];
+        let contador = 0;
+        for (let j = 0; letras[j] !== undefined; j++) {
+          if (j !== indiceAleatorio) {
+            novaLista[contador] = letras[j];
+            contador++;
+          }
+        }
+        letras = novaLista;
+      }
+
+      return resultado;
+    }
+
+    function novaPalavra() {
+      mensagem.textContent = "";
+      resposta = "";
+      caixaResposta.textContent = "";
+
+      let totalPalavras = 0;
+      for (let i = 0; palavras[i] !== undefined; i++) {
+        totalPalavras++;
+      }
+
+      let indice = Math.floor(Math.random() * totalPalavras);
+      palavraAtual = palavras[indice];
+
+      embaralhada = embaralhar(palavraAtual);
+
+      if (juntarLetras(embaralhada) === palavraAtual) {
+        let temp = embaralhada[0];
+        let ultimoIndice = 0;
+        for (let i = 0; embaralhada[i] !== undefined; i++) {
+          ultimoIndice = i;
+        }
+        embaralhada[0] = embaralhada[ultimoIndice];
+        embaralhada[ultimoIndice] = temp;
+      }
+
+      containerLetras.innerHTML = "";
+
+      for (let i = 0; embaralhada[i] !== undefined; i++) {
+        let letra = embaralhada[i];
+        containerLetras.innerHTML += "<div class='letra'>" + letra + "</div>";
+      }
+
+      let botoes = containerLetras.getElementsByClassName("letra");
+      for (let i = 0; botoes[i] !== undefined; i++) {
+        botoes[i].onclick = function () {
+          selecionarLetra(botoes[i].textContent, botoes[i]);
+        };
+      }
+    } 
+    
+    function selecionarLetra(letra, elemento) {
+      resposta += letra;
+      caixaResposta.textContent = resposta;
+      elemento.className += " usada";
+
+      let tamanho = 0;
+      for (let i = 0; palavraAtual[i] !== undefined; i++) {
+        tamanho++;
+      }
+
+      if (resposta.length === tamanho) {
+        if (resposta === palavraAtual) {
+          mensagem.textContent = "✨ Correto! Você restaurou a palavra!";
+          pontuacao += 10;
+          palavrasCompletas++;
+          verificarProximoCapitulo();
+        } else {
+          mensagem.textContent = "❌ Ops! Palavra incorreta.";
+          pontuacao -= 5;
+          if (pontuacao < 0) pontuacao = 0;
+        }
+        exibirPontuacao.textContent = "Pontuação: " + pontuacao;
+      }
+    }
+
+    function verificarProximoCapitulo() {
+      if (palavrasCompletas > 0 && palavrasCompletas % 5 === 0) {
+        capitulo++;
+        mensagem.textContent = "📜 Capítulo " + capitulo + ": novas palavras foram esquecidas...";
+        exibirCapitulo.textContent = "Capítulo " + capitulo;
+      }
+    }
+
+    botaoNovaPalavra.onclick = novaPalavra;
+
+  </script>
+</body>
+</html>
