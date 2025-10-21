@@ -159,6 +159,12 @@
     #btn-iniciar:hover {
       background: #5a3e27;
     }
+    .letra.usada {
+  opacity: 0;
+  transform: scale(0.7) rotate(-15deg);
+  transition: 0.4s ease;
+  pointer-events: none; /* 🔒 garante que não dá pra clicar */
+}
   </style>
 </head>
 <body>
@@ -307,10 +313,12 @@ E faça com que os livros voltem a contar suas histórias. ✨
       }
     } 
     
-    function selecionarLetra(letra, elemento) {
-      resposta += letra;
-      caixaResposta.textContent = resposta;
-      elemento.className += " usada";
+   function selecionarLetra(letra, elemento) {
+  resposta += letra;
+  caixaResposta.textContent = resposta;
+  elemento.classList.add("usada");
+  elemento.style.pointerEvents = "none";
+
 
       let tamanho = 0;
       for (let i = 0; palavraAtual[i] !== undefined; i++) {
@@ -345,6 +353,7 @@ E faça com que os livros voltem a contar suas histórias. ✨
   </script>
 </body>
 </html>
+
 
 
 
