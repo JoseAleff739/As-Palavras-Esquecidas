@@ -108,6 +108,15 @@
       background: #5a3e27;
     }
 
+    #botaoCorrigir {
+      background: #a67c52;
+      margin-top: 10px;
+    }
+
+    #botaoCorrigir:hover {
+      background: #8c6239;
+    }
+
     footer {
       position: absolute;
       bottom: 10px;
@@ -168,34 +177,27 @@
     <h1>📖 As Palavras Esquecidas</h1>
     <p>Bem-vindo ao jogo de caça-palavras embaralhado!<br>
     Há muito tempo, as palavras que viviam dentro dos livros se perderam.
-Sem elas, as histórias se calaram, as páginas ficaram vazias e a imaginação adormeceu.<br>
-      
-Agora, cabe a você encontrá-las novamente.
-Cada palavra que descobrir como... livro, autor, poesia, fantasia, amor, etc. Essas palavras ajuda a trazer de volta a magia da leitura.<br>
-
-Recupere as palavras esquecidas…
-E faça com que os livros voltem a contar suas histórias. ✨
-      
-    </p>
+    Sem elas, as histórias se calaram, as páginas ficaram vazias e a imaginação adormeceu.<br>
+    Agora, cabe a você encontrá-las novamente.
+    Recupere as palavras esquecidas… E faça com que os livros voltem a contar suas histórias. ✨</p>
     <button id="btn-iniciar">Começar</button>
   </div>
 
   <h1>📖 As Palavras Esquecidas</h1>
-  <h2 id="capitulo">Capítulo 1</h2>
+  <h2 id="capitulo">Capítulo 1/10</h2>
   <h3 id="pontuacao">Pontuação: 0</h3>
 
   <div class="area-jogo" id="area-jogo">
     <p>Monte a palavra correta clicando nas letras na ordem certa!</p>
-
     <div id="caixaResposta" class="caixa-resposta"></div>
     <div id="containerLetras" class="container-letras"></div>
     <div id="mensagem" class="mensagem"></div>
 
+    <button id="botaoCorrigir">Corrigir Letra</button>
     <button id="botaoNovaPalavra">Nova Palavra</button>
   </div>
 
   <script>
-
     const telaInicial = document.getElementById('tela-inicial');
     const btnIniciar = document.getElementById('btn-iniciar');
     const areaJogo = document.getElementById('area-jogo');
@@ -207,40 +209,19 @@ E faça com que os livros voltem a contar suas histórias. ✨
       novaPalavra();
     };
 
-    let palavras = [
-      "livro","página","capa","texto","leitura","capítulo","conto","ficção","história",
-      
-  "enredo","personagem","narrativa","verso","poema","romance","autor","biblioteca",
-  
-  "prateleira","papel","clássico","manuscrito","citação","prefácio","parágrafo",
-  
-  "letra","palavras","sentença","diálogo","rima","soneto","tema","crônica","drama",
-  
-  "fábula","ilustração","editora","índice","título","resumo","poesia",
-  
-  "álbum","artigo","autoridade","biografia","capítulo","coleção","cronologia",
-  
-  "dedicatória","edição","epílogo","escritor","exemplar","ficha","ficcional",
-  
-  "folha","glosa","historiador","ilustrador","impressão","inciso","início",
-  
-  "leitura","literatura","manuscrito","marcação","melodia","metáfora","narrador",
-  
-  "nota","obras","parágrafo","prefácio","prosa","publicação","quadro","revisão",
-  
-  "rótulo","seção","síntese","sinopse","subtítulo","sumário","símbolo","tese",
-  
-  "título","trama","versículo","volume","vulgar","conto","crônica","ensaio",
-  
-  "estória","fábula","folheto","glosa","gramática","história","ilustração",
-  
-  "índice","literário","metáfora","métrica","narrativa","narrador","novela",
-  
-  "objeto","paródia","plágio","poesia","prefácio","prosa","rima","romance",
-  
-  "símbolo","soneto","subtítulo","teatro","tema","texto","título","verso"
-  
-];
+    let palavras = [ "livro","página","capa","texto","leitura","capítulo","conto","ficção","história",
+      "enredo","personagem","narrativa","verso","poema","romance","autor","biblioteca",
+      "prateleira","papel","clássico","manuscrito","citação","prefácio","parágrafo",
+      "letra","palavras","sentença","diálogo","rima","soneto","tema","crônica","drama",
+      "fábula","ilustração","editora","índice","título","resumo","poesia","álbum","artigo",
+      "autoridade","biografia","coleção","cronologia","dedicatória","edição","epílogo",
+      "escritor","exemplar","ficha","ficcional","folha","glosa","historiador","ilustrador",
+      "impressão","inciso","início","literatura","marcação","melodia","metáfora",
+      "narrador","nota","obras","prosa","publicação","quadro","revisão","rótulo","seção",
+      "síntese","sinopse","subtítulo","sumário","símbolo","tese","versículo","volume",
+      "vulgar","ensaio","estória","gramática","literário","métrica","novela","objeto",
+      "paródia","plágio","teatro"
+    ];
 
     let palavrasUsadas = [];
     let palavraAtual = "";
@@ -249,6 +230,7 @@ E faça com que os livros voltem a contar suas histórias. ✨
     let pontuacao = 0;
     let capitulo = 1;
     let palavrasCompletas = 0;
+    const totalCapitulos = 10;
 
     let caixaResposta = document.getElementById("caixaResposta");
     let containerLetras = document.getElementById("containerLetras");
@@ -256,92 +238,65 @@ E faça com que os livros voltem a contar suas histórias. ✨
     let botaoNovaPalavra = document.getElementById("botaoNovaPalavra");
     let exibirPontuacao = document.getElementById("pontuacao");
     let exibirCapitulo = document.getElementById("capitulo");
+    let botaoCorrigir = document.getElementById("botaoCorrigir");
+
+    let letrasSelecionadas = [];
+    let correcaoUsada = false;
 
     function juntarLetras(array) {
-      let resultado = "";
-      for (let i = 0; array[i] !== undefined; i++) {
-        resultado += array[i];
-      }
-      return resultado;
+      return array.join("");
     }
 
     function embaralhar(palavra) {
-      let letras = [];
-      for (let i = 0; palavra[i] !== undefined; i++) {
-        letras[i] = palavra.charAt(i);
+      let letras = palavra.split("");
+      for (let i = letras.length - 1; i > 0; i--) {
+        let j = Math.floor(Math.random() * (i + 1));
+        [letras[i], letras[j]] = [letras[j], letras[i]];
       }
-
-      let resultado = [];
-
-      let tamanho = 0;
-      for (let i = 0; letras[i] !== undefined; i++) {
-        tamanho++;
-      }
-
-      for (let i = 0; i < tamanho; i++) {
-        let indiceAleatorio = Math.floor(Math.random() * letras.length);
-        resultado[i] = letras[indiceAleatorio];
-
-        let novaLista = [];
-        let contador = 0;
-        for (let j = 0; letras[j] !== undefined; j++) {
-          if (j !== indiceAleatorio) {
-            novaLista[contador] = letras[j];
-            contador++;
-          }
-        }
-        letras = novaLista;
-      }
-
-      return resultado;
+      return letras;
     }
 
     function novaPalavra() {
       mensagem.textContent = "";
       resposta = "";
       caixaResposta.textContent = "";
+      letrasSelecionadas = [];
+      correcaoUsada = false;
+      botaoCorrigir.disabled = false;
 
       if(palavrasUsadas.length === palavras.length){
-        mensagem.textContent = "Parabéns você restaurou as palavras perdidas✨";
-        botaoNovaPalavra.disabled = true;
+        mensagem.textContent = "Parabéns! Você restaurou as palavras perdidas ✨";
         containerLetras.innerHTML = "";
+        botaoNovaPalavra.style.display = "none";
         return;
       }
 
-      let indice;
+      let palavraNova;
       do {
-        indice = Math.floor(Math.random() * palavras.length);
-      } while (palavrasUsadas.includes(indice));
+        let indice = Math.floor(Math.random() * palavras.length);
+        palavraNova = palavras[indice];
+      } while (palavrasUsadas.includes(palavraNova));
 
-      palavrasUsadas.push(indice);
-      palavraAtual = palavras[indice];
+      palavraAtual = palavraNova;
+      palavrasUsadas.push(palavraAtual);
 
       embaralhada = embaralhar(palavraAtual);
-
       if (juntarLetras(embaralhada) === palavraAtual) {
-        let temp = embaralhada[0];
-        let ultimoIndice = 0;
-        for (let i = 0; embaralhada[i] !== undefined; i++) {
-          ultimoIndice = i;
-        }
-        embaralhada[0] = embaralhada[ultimoIndice];
-        embaralhada[ultimoIndice] = temp;
+        [embaralhada[0], embaralhada[embaralhada.length - 1]] = [embaralhada[embaralhada.length - 1], embaralhada[0]];
       }
 
       containerLetras.innerHTML = "";
-
-      for (let i = 0; embaralhada[i] !== undefined; i++) {
+      for (let i = 0; i < embaralhada.length; i++) {
         let letra = embaralhada[i];
         containerLetras.innerHTML += "<div class='letra'>" + letra + "</div>";
       }
 
       let botoes = containerLetras.getElementsByClassName("letra");
-      for (let i = 0; botoes[i] !== undefined; i++) {
+      for (let i = 0; i < botoes.length; i++) {
         botoes[i].onclick = function () {
           selecionarLetra(botoes[i].textContent, botoes[i]);
         };
       }
-      botaoNovaPalavra.disabled = false;
     }
 
     function selecionarLetra(letra, elemento) {
@@ -349,13 +304,11 @@ E faça com que os livros voltem a contar suas histórias. ✨
       caixaResposta.textContent = resposta;
       elemento.classList.add("usada");
       elemento.style.pointerEvents = "none";
+      letrasSelecionadas.push(elemento);
 
-      let tamanho = 0;
-      for (let i = 0; palavraAtual[i] !== undefined; i++) {
-        tamanho++;
-      }
+      if (resposta.length === palavraAtual.length) {
+        botaoCorrigir.disabled = true;
 
-      if (resposta.length === tamanho) {
         if (resposta === palavraAtual) {
           mensagem.textContent = "✨ Correto! Você restaurou a palavra!";
           pontuacao += 10;
@@ -370,11 +323,34 @@ E faça com que os livros voltem a contar suas histórias. ✨
       }
     }
 
+    botaoCorrigir.onclick = function () {
+      if (correcaoUsada || letrasSelecionadas.length === 0 || resposta.length === 0) return;
+
+      resposta = resposta.slice(0, -1);
+      caixaResposta.textContent = resposta;
+
+      let ultimoBotao = letrasSelecionadas.pop();
+      if (ultimoBotao) {
+        ultimoBotao.classList.remove("usada");
+        ultimoBotao.style.pointerEvents = "auto";
+      }
+
+      correcaoUsada = true;
+      botaoCorrigir.disabled = true;
+    };
+
     function verificarProximoCapitulo() {
       if (palavrasCompletas > 0 && palavrasCompletas % 5 === 0) {
         capitulo++;
-        mensagem.textContent = "📜 Capítulo " + capitulo + ": novas palavras foram esquecidas...";
-        exibirCapitulo.textContent = "Capítulo " + capitulo;
+        if (capitulo > totalCapitulos) {
+          mensagem.textContent = "Parabéns! Você restaurou as palavras perdidas ✨";
+          containerLetras.innerHTML = "";
+          botaoNovaPalavra.style.display = "none";
+          exibirCapitulo.textContent = "Fim de Jogo";
+          return;
+        }
+        mensagem.textContent = "📜 Capítulo " + capitulo + "/" + totalCapitulos + ": novas palavras foram esquecidas...";
+        exibirCapitulo.textContent = "Capítulo " + capitulo + "/" + totalCapitulos;
       }
     }
 
