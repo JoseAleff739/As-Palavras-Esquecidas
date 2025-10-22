@@ -325,20 +325,20 @@ E faça com que os livros voltem a contar suas histórias. ✨
         tamanho++;
       }
 
-      if (resposta.length === tamanho) {
-        if (resposta === palavraAtual) {
-          mensagem.textContent = "✨ Correto! Você restaurou a palavra!";
-          pontuacao += 10;
-          palavrasCompletas++;
-          verificarProximoCapitulo();
-        } else {
-          mensagem.textContent = "❌ Ops! Palavra incorreta.";
-          pontuacao -= 5;
-          if (pontuacao < 0) pontuacao = 0;
-        }
-        exibirPontuacao.textContent = "Pontuação: " + pontuacao;
-      }
-    }
+     if (resposta.length === tamanho) {
+  if (resposta === palavraAtual) {
+    mensagem.textContent = "✨ Correto! Você restaurou a palavra!";
+    pontuacao += 10;
+    palavrasCompletas++;
+    verificarProximoCapitulo();
+  } else {
+    mensagem.innerHTML = "❌ Ops! Palavra incorreta.<br>A palavra correta era <b>" + palavraAtual + "</b>.";
+    pontuacao -= 5;
+    if (pontuacao < 0) pontuacao = 0;
+  }
+  exibirPontuacao.textContent = "Pontuação: " + pontuacao;
+}
+}
 
     function verificarProximoCapitulo() {
       if (palavrasCompletas > 0 && palavrasCompletas % 5 === 0) {
