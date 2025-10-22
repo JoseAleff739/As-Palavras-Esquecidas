@@ -71,6 +71,7 @@
       opacity: 0;
       transform: scale(0.7) rotate(-15deg);
       transition: 0.4s ease;
+      pointer-events: none;
     }
 
     .caixa-resposta {
@@ -159,12 +160,6 @@
     #btn-iniciar:hover {
       background: #5a3e27;
     }
-    .letra.usada {
-  opacity: 0;
-  transform: scale(0.7) rotate(-15deg);
-  transition: 0.4s ease;
-  pointer-events: none; /* 🔒 garante que não dá pra clicar */
-}
   </style>
 </head>
 <body>
@@ -213,13 +208,41 @@ E faça com que os livros voltem a contar suas histórias. ✨
     };
 
     let palavras = [
-      "livro","leitura","historia","autor","poeta","conto","verso","frase",
-      "palavra","pagina","titulo","escrita","texto","papel","tinta","caneta",
-      "caderno","biblioteca","livraria","romance","drama","fantasia","misterio",
-      "amor","tempo","mundo","ideia","memoria","poesia","prosa","rima","arte",
-      "sabedoria","ensino","professor","obra","heroi","vilao","trama","tema"
-    ];
+      "livro","página","capa","texto","leitura","capítulo","conto","ficção","história",
+      
+  "enredo","personagem","narrativa","verso","poema","romance","autor","biblioteca",
+  
+  "prateleira","papel","clássico","manuscrito","citação","prefácio","parágrafo",
+  
+  "letra","palavras","sentença","diálogo","rima","soneto","tema","crônica","drama",
+  
+  "fábula","ilustração","editora","índice","título","resumo","poesia",
+  
+  "álbum","artigo","autoridade","biografia","capítulo","coleção","cronologia",
+  
+  "dedicatória","edição","epílogo","escritor","exemplar","ficha","ficcional",
+  
+  "folha","glosa","historiador","ilustrador","impressão","inciso","início",
+  
+  "leitura","literatura","manuscrito","marcação","melodia","metáfora","narrador",
+  
+  "nota","obras","parágrafo","prefácio","prosa","publicação","quadro","revisão",
+  
+  "rótulo","seção","síntese","sinopse","subtítulo","sumário","símbolo","tese",
+  
+  "título","trama","versículo","volume","vulgar","conto","crônica","ensaio",
+  
+  "estória","fábula","folheto","glosa","gramática","história","ilustração",
+  
+  "índice","literário","metáfora","métrica","narrativa","narrador","novela",
+  
+  "objeto","paródia","plágio","poesia","prefácio","prosa","rima","romance",
+  
+  "símbolo","soneto","subtítulo","teatro","tema","texto","título","verso"
+  
+];
 
+    let palavrasUsadas = [];
     let palavraAtual = "";
     let embaralhada = [];
     let resposta = "";
@@ -278,12 +301,19 @@ E faça com que os livros voltem a contar suas histórias. ✨
       resposta = "";
       caixaResposta.textContent = "";
 
-      let totalPalavras = 0;
-      for (let i = 0; palavras[i] !== undefined; i++) {
-        totalPalavras++;
+      if(palavrasUsadas.length === palavras.length){
+        mensagem.textContent = "Parabéns você restaurou as palavras perdidas✨";
+        botaoNovaPalavra.disabled = true;
+        containerLetras.innerHTML = "";
+        return;
       }
 
-      let indice = Math.floor(Math.random() * totalPalavras);
+      let indice;
+      do {
+        indice = Math.floor(Math.random() * palavras.length);
+      } while (palavrasUsadas.includes(indice));
+
+      palavrasUsadas.push(indice);
       palavraAtual = palavras[indice];
 
       embaralhada = embaralhar(palavraAtual);
@@ -311,34 +341,34 @@ E faça com que os livros voltem a contar suas histórias. ✨
           selecionarLetra(botoes[i].textContent, botoes[i]);
         };
       }
-    } 
-    
-   function selecionarLetra(letra, elemento) {
-  resposta += letra;
-  caixaResposta.textContent = resposta;
-  elemento.classList.add("usada");
-  elemento.style.pointerEvents = "none";
+      botaoNovaPalavra.disabled = false;
+    }
 
+    function selecionarLetra(letra, elemento) {
+      resposta += letra;
+      caixaResposta.textContent = resposta;
+      elemento.classList.add("usada");
+      elemento.style.pointerEvents = "none";
 
       let tamanho = 0;
       for (let i = 0; palavraAtual[i] !== undefined; i++) {
         tamanho++;
       }
 
-     if (resposta.length === tamanho) {
-  if (resposta === palavraAtual) {
-    mensagem.textContent = "✨ Correto! Você restaurou a palavra!";
-    pontuacao += 10;
-    palavrasCompletas++;
-    verificarProximoCapitulo();
-  } else {
-    mensagem.innerHTML = "❌ Ops! Palavra incorreta.<br>A palavra correta era <b>" + palavraAtual + "</b>.";
-    pontuacao -= 5;
-    if (pontuacao < 0) pontuacao = 0;
-  }
-  exibirPontuacao.textContent = "Pontuação: " + pontuacao;
-}
-}
+      if (resposta.length === tamanho) {
+        if (resposta === palavraAtual) {
+          mensagem.textContent = "✨ Correto! Você restaurou a palavra!";
+          pontuacao += 10;
+          palavrasCompletas++;
+          verificarProximoCapitulo();
+        } else {
+          mensagem.innerHTML = "❌ Ops! Palavra incorreta.<br>A palavra correta era <b>" + palavraAtual + "</b>.";
+          pontuacao -= 5;
+          if (pontuacao < 0) pontuacao = 0;
+        }
+        exibirPontuacao.textContent = "Pontuação: " + pontuacao;
+      }
+    }
 
     function verificarProximoCapitulo() {
       if (palavrasCompletas > 0 && palavrasCompletas % 5 === 0) {
@@ -353,9 +383,3 @@ E faça com que os livros voltem a contar suas histórias. ✨
   </script>
 </body>
 </html>
-
-
-
-
-
-
