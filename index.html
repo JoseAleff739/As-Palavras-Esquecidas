@@ -208,6 +208,126 @@
       user-select: none;
       white-space: pre-wrap;
     }
+
+    #tela-final {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: rgba(0, 0, 0, 0.7);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      z-index: 10000;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 1s ease-in-out;
+      font-family: 'Georgia', serif;
+    }
+
+    #tela-final.show {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    #tela-final h2 {
+      font-size: 3.5em;
+      margin-bottom: 20px;
+      color: #fff;
+      text-shadow: 3px 3px 8px rgba(0,0,0,0.8);
+      animation: bounceIn 1.5s ease-out;
+    }
+    
+    #tela-final p {
+        font-size: 1.8em;
+        color: #f0e4d7;
+        text-shadow: 2px 2px 5px rgba(0,0,0,0.6);
+        animation: fadeIn 2s ease-out 0.5s forwards;
+        opacity: 0;
+    }
+
+    /* Botão de Reiniciar */
+    #btn-reiniciar {
+      background: #f0e4d7;
+      color: #3e2c1c;
+      padding: 15px 40px;
+      font-size: 1.2em;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+      transition: all 0.3s ease;
+      margin-top: 30px;
+      font-family: 'Georgia', serif;
+    }
+
+    #btn-reiniciar:hover {
+      background: #fff;
+      transform: scale(1.05);
+    }
+
+
+    @keyframes bounceIn {
+      0%, 20%, 40%, 60%, 80%, 100% {
+        transition-timing-function: cubic-bezier(0.215, 0.610, 0.355, 1.000);
+      }
+      0% {
+        opacity: 0;
+        transform: scale3d(.3, .3, .3);
+      }
+      20% {
+        transform: scale3d(1.1, 1.1, 1.1);
+      }
+      40% {
+        transform: scale3d(.9, .9, .9);
+      }
+      60% {
+        opacity: 1;
+        transform: scale3d(1.03, 1.03, 1.03);
+      }
+      80% {
+        transform: scale3d(.97, .97, .97);
+      }
+      100% {
+        opacity: 1;
+        transform: scale3d(1, 1, 1);
+      }
+    }
+
+    @keyframes fadeIn {
+        0% { opacity: 0; }
+        100% { opacity: 1; }
+    }
+
+    .firework {
+      position: absolute;
+      width: 5px;
+      height: 5px;
+      background: white;
+      border-radius: 50%;
+      opacity: 0;
+      animation: explode 1s ease-out forwards;
+      transform: translate(-50%, -50%);
+    }
+
+    @keyframes explode {
+      0% {
+        transform: scale(0);
+        opacity: 1;
+      }
+      10% {
+        transform: scale(0.5);
+      }
+      100% {
+        transform: scale(2);
+        opacity: 0;
+        box-shadow: 0 0 50px yellow, 0 0 20px orange, 0 0 10px red;
+      }
+    }
+
   </style>
 </head>
 <body>
@@ -240,10 +360,20 @@
     <button id="botaoCorrigir">Corrigir Letra</button>
   </div>
 
+  
+<div id="tela-final">
+    <h2>Parabéns, desbravador de palavras!</h2>
+    <p>Você restaurou todas as palavras esquecidas e fez os livros cantarem novamente. Sua pontuação final: <span id="pontuacaoFinal">0</span></p>
+    <button id="btn-reiniciar">Jogar Novamente</button>
+  </div>
+
   <script>
     const telaInicial = document.getElementById('tela-inicial');
     const btnIniciar = document.getElementById('btn-iniciar');
     const areaJogo = document.getElementById('area-jogo');
+    const telaFinal = document.getElementById('tela-final');
+    const pontuacaoFinalSpan = document.getElementById('pontuacaoFinal');
+    const btnReiniciar = document.getElementById('btn-reiniciar'); // Pega o botão de reiniciar
 
     areaJogo.style.display = 'none';  
    
@@ -409,14 +539,54 @@
       iniciarNovoJogo(); 
     };
 
+    // Listener para o botão de reiniciar
+    btnReiniciar.onclick = () => {
+      telaFinal.classList.remove('show');
+      // Remove quaisquer fogos de artifício restantes
+      telaFinal.querySelectorAll('.firework').forEach(fw => fw.remove());
+      iniciarNovoJogo();
+    };
+
+
+    function mostrarTelaFinal() {
+      pontuacaoFinalSpan.textContent = pontuacao; 
+      telaFinal.classList.add('show'); 
+      
+      for (let i = 0; i < 30; i++) { 
+        setTimeout(() => {
+          const firework = document.createElement('div');
+          firework.classList.add('firework');
+          firework.style.left = `${Math.random() * 100}vw`; 
+          firework.style.top = `${Math.random() * 100}vh`; 
+          
+          const colors = ['#FFD700', '#FF4500', '#ADFF2F', '#00BFFF', '#FF69B4'];
+          firework.style.boxShadow = `0 0 50px ${colors[Math.floor(Math.random() * colors.length)]}, 0 0 20px ${colors[Math.floor(Math.random() * colors.length)]}`;
+          
+          telaFinal.appendChild(firework);
+          
+          setTimeout(() => {
+            firework.remove();
+          }, 1000); 
+        }, Math.random() * 3000); 
+      }
+      // O reinício automático foi removido
+    }
+
+
     function novaPalavra() {
       botaoDica.disabled = false;
       botaoCorrigir.disabled = false;
       containerLetras.style.pointerEvents = 'auto'; 
 
+      // Verifica se o índice atingiu o total de palavras (90)
+      if (indicePalavraAtual >= palavrasDoJogo.length) {
+        mostrarTelaFinal();
+        return; 
+      }
+
+      // Esta verificação também funciona, pois 10 * 9 = 90
       if (capituloAtual > totalCapitulos) {
-        alert(`Parabéns! Você completou todos os ${totalCapitulos} capítulos com ${pontuacao} pontos! O jogo será reiniciado.`);
-        iniciarNovoJogo(); 
+        mostrarTelaFinal();
         return; 
       }
 
@@ -483,7 +653,7 @@
           capituloAtual++;
           palavraAtualDoCapitulo = 1; 
           
-          if(capituloAtual <= totalCapitulos) {
+          if(capituloAtual <= totalCapitulos && indicePalavraAtual < palavrasDoJogo.length) {
               mensagem.textContent = `🎉 Capítulo ${capituloAtual-1} completo! Preparando próximo...`;
           }
         }
@@ -508,7 +678,7 @@
             capituloAtual++;
             palavraAtualDoCapitulo = 1;
             
-            if(capituloAtual <= totalCapitulos) {
+            if(capituloAtual <= totalCapitulos && indicePalavraAtual < palavrasDoJogo.length) {
                 mensagem.textContent += `\n🎉 Preparando próximo capítulo...`;
             }
         }
@@ -550,5 +720,7 @@
       }
     };
   </script>
+
+  <footer>© 2025 As Palavras Esquecidas</footer>
 </body>
 </html>
