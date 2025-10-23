@@ -14,7 +14,7 @@
       align-items: center;
       justify-content: flex-start;
       height: 100vh;
-      overflow: hidden;
+      overflow-y: auto;
     }
 
     h1 {
@@ -41,6 +41,8 @@
       padding: 20px 30px;
       margin-top: 20px;
       min-width: 320px;
+      max-width: 90%;
+      position: relative;
     }
 
     .container-letras {
@@ -49,6 +51,7 @@
       margin: 20px 0;
       flex-wrap: wrap;
       justify-content: center;
+      max-width: 500px;
     }
 
     .letra {
@@ -83,6 +86,7 @@
       margin-top: 10px;
       letter-spacing: 4px;
       transition: 0.3s;
+      word-break: break-all;
     }
 
     .mensagem {
@@ -102,6 +106,7 @@
       margin-top: 15px;
       cursor: pointer;
       transition: 0.3s;
+      user-select: none;
     }
 
     button:hover {
@@ -117,9 +122,32 @@
       background: #8c6239;
     }
 
-    footer {
+    #botaoDica {
       position: absolute;
-      bottom: 10px;
+      top: 20px;
+      right: 20px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      font-size: 2em;
+      color: #c7b299;
+      transition: color 0.3s ease;
+      user-select: none;
+    }
+
+    #botaoDica:hover:not(:disabled) {
+      color: #a67c52;
+    }
+
+    #botaoDica:disabled {
+      cursor: not-allowed;
+      color: #eee;
+      opacity: 0.5;
+    }
+
+    footer {
+      margin-top: 20px;
+      padding-bottom: 10px;
       font-size: 0.9em;
       color: #6b5841;
     }
@@ -169,6 +197,17 @@
     #btn-iniciar:hover {
       background: #5a3e27;
     }
+
+    #dicaTexto {
+      margin-top: 10px;
+      font-style: italic;
+      color: #7b6a40;
+      min-height: 48px;
+      max-width: 400px;
+      text-align: center;
+      user-select: none;
+      white-space: pre-wrap;
+    }
   </style>
 </head>
 <body>
@@ -184,7 +223,9 @@
   </div>
 
   <h1>📖 As Palavras Esquecidas</h1>
-  <h2 id="capitulo">Capítulo 1/10</h2>
+  
+  <h2 id="capitulo">Capítulo 1/10</h2> 
+  <h3 id="palavraContador">Palavra 1/9</h3> 
   <h3 id="pontuacao">Pontuação: 0</h3>
 
   <div class="area-jogo" id="area-jogo">
@@ -193,8 +234,10 @@
     <div id="containerLetras" class="container-letras"></div>
     <div id="mensagem" class="mensagem"></div>
 
+    <div id="dicaTexto"></div>
+
+    <button id="botaoDica" title="Usar dica" aria-label="Usar dica">💡</button>
     <button id="botaoCorrigir">Corrigir Letra</button>
-    <button id="botaoNovaPalavra">Nova Palavra</button>
   </div>
 
   <script>
@@ -202,160 +245,310 @@
     const btnIniciar = document.getElementById('btn-iniciar');
     const areaJogo = document.getElementById('area-jogo');
 
-    areaJogo.style.display = 'none'; 
-    btnIniciar.onclick = () => {
-      telaInicial.style.display = 'none'; 
-      areaJogo.style.display = 'flex';  
-      novaPalavra();
-    };
-
-    let palavras = [ "livro","página","capa","texto","leitura","capítulo","conto","ficção","história",
+    areaJogo.style.display = 'none';  
+   
+    let palavras = [
+      "livro","página","capa","texto","leitura","capítulo","conto","ficção","história",
       "enredo","personagem","narrativa","verso","poema","romance","autor","biblioteca",
       "prateleira","papel","clássico","manuscrito","citação","prefácio","parágrafo",
       "letra","palavras","sentença","diálogo","rima","soneto","tema","crônica","drama",
       "fábula","ilustração","editora","índice","título","resumo","poesia","álbum","artigo",
-      "autoridade","biografia","coleção","cronologia","dedicatória","edição","epílogo",
-      "escritor","exemplar","ficha","ficcional","folha","glosa","historiador","ilustrador",
+      "autoridade","biografia","coleção","cronologia","dedicatória","edição",
+      "escritor","exemplar","ficha","folha","historiador","ilustrador",
       "impressão","inciso","início","literatura","marcação","melodia","metáfora",
       "narrador","nota","obras","prosa","publicação","quadro","revisão","rótulo","seção",
-      "síntese","sinopse","subtítulo","sumário","símbolo","tese","versículo","volume",
-      "vulgar","ensaio","estória","gramática","literário","métrica","novela","objeto",
+      "síntese","subtítulo","sumário","símbolo","tese","versículo","volume",
+      "ensaio","estória","gramática","literário","métrica","novela","objeto",
       "paródia","plágio","teatro"
     ];
 
-    let palavrasUsadas = [];
-    let palavraAtual = "";
-    let embaralhada = [];
-    let resposta = "";
-    let pontuacao = 0;
-    let capitulo = 1;
-    let palavrasCompletas = 0;
-    const totalCapitulos = 10;
-
-    let caixaResposta = document.getElementById("caixaResposta");
-    let containerLetras = document.getElementById("containerLetras");
-    let mensagem = document.getElementById("mensagem");
-    let botaoNovaPalavra = document.getElementById("botaoNovaPalavra");
-    let exibirPontuacao = document.getElementById("pontuacao");
-    let exibirCapitulo = document.getElementById("capitulo");
-    let botaoCorrigir = document.getElementById("botaoCorrigir");
-
-    let letrasSelecionadas = [];
-    let correcaoUsada = false;
-
-    function juntarLetras(array) {
-      return array.join("");
-    }
-
-    function embaralhar(palavra) {
-      let letras = palavra.split("");
-      for (let i = letras.length - 1; i > 0; i--) {
-        let j = Math.floor(Math.random() * (i + 1));
-        [letras[i], letras[j]] = [letras[j], letras[i]];
-      }
-      return letras;
-    }
-
-    function novaPalavra() {
-      mensagem.textContent = "";
-      resposta = "";
-      caixaResposta.textContent = "";
-      letrasSelecionadas = [];
-      correcaoUsada = false;
-      botaoCorrigir.disabled = false;
-
-      if(palavrasUsadas.length === palavras.length){
-        mensagem.textContent = "Parabéns! Você restaurou as palavras perdidas ✨";
-        containerLetras.innerHTML = "";
-        botaoNovaPalavra.style.display = "none";
-        return;
-      }
-
-      let palavraNova;
-      do {
-        let indice = Math.floor(Math.random() * palavras.length);
-        palavraNova = palavras[indice];
-      } while (palavrasUsadas.includes(palavraNova));
-
-      palavraAtual = palavraNova;
-      palavrasUsadas.push(palavraAtual);
-
-      embaralhada = embaralhar(palavraAtual);
-      if (juntarLetras(embaralhada) === palavraAtual) {
-        [embaralhada[0], embaralhada[embaralhada.length - 1]] = [embaralhada[embaralhada.length - 1], embaralhada[0]];
-      }
-
-      containerLetras.innerHTML = "";
-      for (let i = 0; i < embaralhada.length; i++) {
-        let letra = embaralhada[i];
-        containerLetras.innerHTML += "<div class='letra'>" + letra + "</div>";
-      }
-
-      let botoes = containerLetras.getElementsByClassName("letra");
-      for (let i = 0; i < botoes.length; i++) {
-        botoes[i].onclick = function () {
-          selecionarLetra(botoes[i].textContent, botoes[i]);
-        };
-      }
-    }
-
-    function selecionarLetra(letra, elemento) {
-      resposta += letra;
-      caixaResposta.textContent = resposta;
-      elemento.classList.add("usada");
-      elemento.style.pointerEvents = "none";
-      letrasSelecionadas.push(elemento);
-
-      if (resposta.length === palavraAtual.length) {
-        botaoCorrigir.disabled = true;
-
-        if (resposta === palavraAtual) {
-          mensagem.textContent = "✨ Correto! Você restaurou a palavra!";
-          pontuacao += 10;
-          palavrasCompletas++;
-          verificarProximoCapitulo();
-        } else {
-          mensagem.innerHTML = "❌ Ops! Palavra incorreta.<br>A palavra correta era <b>" + palavraAtual + "</b>.";
-          pontuacao -= 5;
-          if (pontuacao < 0) pontuacao = 0;
-        }
-        exibirPontuacao.textContent = "Pontuação: " + pontuacao;
-      }
-    }
-
-    botaoCorrigir.onclick = function () {
-      if (correcaoUsada || letrasSelecionadas.length === 0 || resposta.length === 0) return;
-
-      resposta = resposta.slice(0, -1);
-      caixaResposta.textContent = resposta;
-
-      let ultimoBotao = letrasSelecionadas.pop();
-      if (ultimoBotao) {
-        ultimoBotao.classList.remove("usada");
-        ultimoBotao.style.pointerEvents = "auto";
-      }
-
-      correcaoUsada = true;
-      botaoCorrigir.disabled = true;
+    const dicasPoeticas = {
+      "livro": "📚 O relicário onde o tempo repousa em folhas escritas.",
+      "página": "🍂 Uma folha que guarda segredos e sonhos por desvendar.",
+      "capa": "🛡️ A armadura que protege as histórias internas.",
+      "texto": "✒️ A dança silenciosa dos pensamentos na folha branca.",
+      "leitura": "👁️ O ato sagrado de dar vida ao que está escrito.",
+      "capítulo": "📖 O portal que divide uma jornada literária em etapas.",
+      "conto": "🌙 Um lampejo breve de fantasia e realidade entrelaçados.",
+      "ficção": "🦄 O reino invisível onde o impossível se torna real.",
+      "história": "⏳ O eco das vidas passadas sussurrado nas páginas.",
+      "enredo": "🧩 O fio invisível que tece a trama oculta da narrativa.",
+      "personagem": "🎭 A alma que habita as palavras e ganha vida em nossa mente.",
+      "narrativa": "🗺️ A trilha que guia o leitor pelo bosque das palavras.",
+      "verso": "🌿 O suspiro melodioso que habita a poesia.",
+      "poema": "💫 Um cristal de emoções lapidado em palavras.",
+      "romance": "❤️ O encontro entre corações escrito nas entrelinhas.",
+      "autor": "✍️ O mago que conjura mundos com tinta e papel.",
+      "biblioteca": "🏛️ O templo sagrado onde moram infinitas histórias.",
+      "prateleira": "📚 Onde os livros sonham, enfileirados em silêncio.",
+      "papel": "📜 A tela em branco onde a tinta desenha o pensamento.",
+      "clássico": "🏛️ A obra que sobrevive ao tempo e ecoa através das eras.",
+      "manuscrito": "📜 O pergaminho que guarda segredos ancestrais.",
+      "citação": "🗣️ Um fragmento de sabedoria que viaja de um livro para outro.",
+      "prefácio": "🚪 O portal que antecede a jornada, escrito por quem já a conhece.",
+      "parágrafo": "🔗 O elo que organiza pensamentos em corrente clara.",
+      "letra": "A O tijolo fundamental que constrói o palácio das palavras.",
+      "palavras": "🗣️ Os fios de som e sentido que tecem a realidade.",
+      "sentença": "📜 A corrente de palavras que aprisiona uma ideia completa.",
+      "diálogo": "💬 O encontro entre vozes que constrói mundos.",
+      "rima": "🎵 O eco que une sons e sentidos em dança perfeita.",
+      "soneto": "🖋️ Um poema de catorze versos, onde a forma e a emoção se encontram.",
+      "tema": "💡 A ideia central, o coração que pulsa por baixo do texto.",
+      "crônica": "📰 O espelho do cotidiano, refletido com arte e leveza.",
+      "drama": "🎭 O palco onde as emoções se vestem de luz e sombra.",
+      "fábula": "🦊 A lição travestida em história simples e encantada.",
+      "ilustração": "🎨 A pincelada que dá cor aos pensamentos silenciosos.",
+      "editora": "🏭 A casa que veste as palavras e as apresenta ao mundo.",
+      "índice": "🗺️ O mapa que aponta o caminho para os tesouros escondidos no livro.",
+      "título": "🏷️ O nome que batiza a obra e convida à leitura.",
+      "resumo": "🔍 A essência da história, contada em poucas e valiosas linhas.",
+      "poesia": "🦋 A linguagem da alma, que faz o coração voar com palavras.",
+      "álbum": "🖼️ O guardião de memórias, onde imagens contam histórias sem voz.",
+      "artigo": "📰 Um texto breve que opina ou informa sobre o mundo.",
+      "autoridade": "👑 A voz de mestre que fala com profundo conhecimento.",
+      "biografia": "⏳ A história de uma vida, contada do início ao fim.",
+      "coleção": "📚 Um conjunto de obras reunidas por um laço em comum.",
+      "cronologia": "🕰️ A linha do tempo que organiza os fatos em sua devida ordem.",
+      "dedicatória": "💌 A mensagem de carinho escrita antes da primeira página.",
+      "edição": "🔄 A versão de uma obra, polida e preparada para o leitor.",
+      "escritor": "🖋️ O artesão de sonhos moldados em letras.",
+      "exemplar": "📘 A cópia única pronta para ser descoberta.",
+      "ficha": "📇 A identidade resumida de uma obra ou autor.",
+      "folha": "🍃 O mesmo que 'página', uma face do papel que vira.",
+      "historiador": "🕵️‍♂️ O guardião do tempo que revela o passado.",
+      "ilustrador": "🎨 A mão que pinta imagens nos livros da alma.",
+      "impressão": "🖨️ O toque final que eterniza palavras no papel.",
+      "inciso": "🔍 O detalhe escondido que muda o todo sutilmente.",
+      "início": "🌅 O ponto de partida de toda grande aventura literária.",
+      "literatura": "🌳 A floresta onde as ideias crescem e florescem eternamente.",
+      "marcação": "📌 O sinal que destaca o essencial no livro da vida.",
+      "melodia": "🎼 O som invisível que ressoa nas letras e versos.",
+      "metáfora": "🦋 A ponte sutil entre o real e o imaginado.",
+      "narrador": "🗣️ A voz que guia pela estrada encantada das palavras.",
+      "nota": "📝 O sussurro do autor para o leitor atento.",
+      "obras": "🏛️ Os monumentos literários que resistem ao tempo.",
+      "prosa": "📜 O rio tranquilo onde as palavras fluem livres e descompassadas.",
+      "publicação": "🚀 O lançamento das palavras rumo ao infinito.",
+      "quadro": "🖼️ A moldura que delimita uma cena ou ideia.",
+      "revisão": "🔧 O polimento que torna a escrita brilhante e clara.",
+      "rótulo": "🏷️ A etiqueta que classifica e define histórias.",
+      "seção": "✂️ O recorte que organiza o livro em partes claras.",
+      "síntese": "🧬 O extrato mais puro de uma ideia complexa.",
+      "subtítulo": "📌 O segredo que sussurra por baixo do título principal.",
+      "sumário": "📑 A lista que organiza os capítulos e suas moradas.",
+      "símbolo": "🔣 A imagem que carrega sentidos profundos e misteriosos.",
+      "tese": "🎓 A ideia que desafia o pensamento e abre novos caminhos.",
+      "versículo": "📖 O pequeno fragmento sagrado das escrituras antigas.",
+      "volume": "📚 O corpo físico que guarda universos em suas páginas.",
+      "ensaio": "🖋️ O convite à reflexão, um diálogo com a própria alma.",
+      "estória": "🕯️ O nome antigo das histórias contadas ao redor do fogo.",
+      "gramática": "📐 A estrutura invisível que sustenta a língua viva.",
+      "literário": "✨ O brilho que transforma o comum em arte sublime.",
+      "métrica": "🎼 O compasso que regula a dança das palavras faladas.",
+      "novela": "📺 A narrativa longa que vive entre capítulos e emoções.",
+      "objeto": "🏺 O item que conta sua história mesmo em silêncio.",
+      "paródia": "🎭 A risada que revela verdades através da imitação.",
+      "plágio": "🚫 O ato sombrio de roubar palavras alheias.",
+      "teatro": "🎭 O espaço onde as histórias ganham corpo e voz."
     };
 
-    function verificarProximoCapitulo() {
-      if (palavrasCompletas > 0 && palavrasCompletas % 5 === 0) {
-        capitulo++;
-        if (capitulo > totalCapitulos) {
-          mensagem.textContent = "Parabéns! Você restaurou as palavras perdidas ✨";
-          containerLetras.innerHTML = "";
-          botaoNovaPalavra.style.display = "none";
-          exibirCapitulo.textContent = "Fim de Jogo";
-          return;
-        }
-        mensagem.textContent = "📜 Capítulo " + capitulo + "/" + totalCapitulos + ": novas palavras foram esquecidas...";
-        exibirCapitulo.textContent = "Capítulo " + capitulo + "/" + totalCapitulos;
+    let palavraAtual = "";
+    let letrasUsadas = [];
+    let respostaAtual = "";
+    let pontuacao = 0;
+    let dicaUsada = 0; 
+
+    let capituloAtual = 1;
+    let palavraAtualDoCapitulo = 1;
+    let palavrasDoJogo = []; 
+    let indicePalavraAtual = 0; 
+    
+    const totalCapitulos = 10; 
+    const palavrasPorCapitulo = 9; 
+
+    const containerLetras = document.getElementById('containerLetras');
+    const caixaResposta = document.getElementById('caixaResposta');
+    const mensagem = document.getElementById('mensagem');
+    const pontuacaoTexto = document.getElementById('pontuacao');
+    const capituloTexto = document.getElementById('capitulo');
+    const palavraContadorTexto = document.getElementById('palavraContador'); 
+    const botaoCorrigir = document.getElementById('botaoCorrigir');
+    const botaoDica = document.getElementById('botaoDica');
+    const dicaTexto = document.getElementById('dicaTexto');
+
+    function embaralharArray(array) {
+      let arrayCopiado = [...array]; 
+      for (let i = arrayCopiado.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arrayCopiado[i], arrayCopiado[j]] = [arrayCopiado[j], arrayCopiado[i]];
+      }
+      return arrayCopiado;
+    }
+
+    function embaralharLetras(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    function iniciarNovoJogo() {
+      capituloAtual = 1;
+      palavraAtualDoCapitulo = 1;
+      pontuacao = 0;
+      indicePalavraAtual = 0;
+      palavrasDoJogo = embaralharArray(palavras);
+      
+      novaPalavra(); 
+    }
+
+    btnIniciar.onclick = () => {
+      telaInicial.style.display = 'none';  
+      areaJogo.style.display = 'flex';    
+      iniciarNovoJogo(); 
+    };
+
+    function novaPalavra() {
+      botaoDica.disabled = false;
+      botaoCorrigir.disabled = false;
+      containerLetras.style.pointerEvents = 'auto'; 
+
+      if (capituloAtual > totalCapitulos) {
+        alert(`Parabéns! Você completou todos os ${totalCapitulos} capítulos com ${pontuacao} pontos! O jogo será reiniciado.`);
+        iniciarNovoJogo(); 
+        return; 
+      }
+
+      dicaUsada = 0;
+      dicaTexto.textContent = "";
+
+      palavraAtual = palavrasDoJogo[indicePalavraAtual]; 
+      
+      letrasUsadas = [];
+      respostaAtual = "";
+      caixaResposta.textContent = "";
+      mensagem.textContent = "";
+
+      capituloTexto.textContent = `Capítulo ${capituloAtual}/${totalCapitulos}`;
+      palavraContadorTexto.textContent = `Palavra ${palavraAtualDoCapitulo}/${palavrasPorCapitulo}`;
+      pontuacaoTexto.textContent = `Pontuação: ${pontuacao}`;
+
+      let letras = palavraAtual.split('');
+      letras = embaralharLetras(letras); 
+      containerLetras.innerHTML = "";
+
+      letras.forEach((letra, i) => {
+        const spanLetra = document.createElement('span');
+        spanLetra.classList.add('letra');
+        spanLetra.textContent = letra;
+        spanLetra.onclick = () => selecionarLetra(i);
+        containerLetras.appendChild(spanLetra);
+      });
+    }
+
+    function selecionarLetra(indice) {
+      if (containerLetras.children[indice].classList.contains('usada')) return;
+      let letra = containerLetras.children[indice].textContent;
+      respostaAtual += letra;
+      letrasUsadas.push(indice);
+      containerLetras.children[indice].classList.add('usada');
+      caixaResposta.textContent = respostaAtual;
+      mensagem.textContent = "";
+
+      if (respostaAtual.length === palavraAtual.length) {
+        verificarResposta();
       }
     }
 
-    botaoNovaPalavra.onclick = novaPalavra;
+    function verificarResposta() {
+      if (respostaAtual.toLowerCase() === palavraAtual.toLowerCase()) {
+        let pontosGanhos;
+        if (dicaUsada === 0) pontosGanhos = 10;
+        else if (dicaUsada === 1) pontosGanhos = 5;
+        else pontosGanhos = 3;
 
+        pontuacao += pontosGanhos;
+        mensagem.textContent = `✨ Você acertou! +${pontosGanhos} pontos.`;
+        pontuacaoTexto.textContent = `Pontuação: ${pontuacao}`;
+        
+        botaoDica.disabled = true;
+        botaoCorrigir.disabled = true;
+        containerLetras.style.pointerEvents = 'none';
+
+        palavraAtualDoCapitulo++;
+        indicePalavraAtual++;
+
+        if (palavraAtualDoCapitulo > palavrasPorCapitulo) {
+          capituloAtual++;
+          palavraAtualDoCapitulo = 1; 
+          
+          if(capituloAtual <= totalCapitulos) {
+              mensagem.textContent = `🎉 Capítulo ${capituloAtual-1} completo! Preparando próximo...`;
+          }
+        }
+        
+        setTimeout(novaPalavra, 2000); 
+
+      } else {
+        const pontosPerdidos = 5;
+        pontuacao -= pontosPerdidos;
+
+        mensagem.textContent = `❌ Incorreto! -${pontosPerdidos} pontos. A palavra era "${palavraAtual}".`;
+        pontuacaoTexto.textContent = `Pontuação: ${pontuacao}`;
+        
+        botaoDica.disabled = true;
+        botaoCorrigir.disabled = true; 
+        containerLetras.style.pointerEvents = 'none';
+
+        palavraAtualDoCapitulo++;
+        indicePalavraAtual++;
+
+        if (palavraAtualDoCapitulo > palavrasPorCapitulo) {
+            capituloAtual++;
+            palavraAtualDoCapitulo = 1;
+            
+            if(capituloAtual <= totalCapitulos) {
+                mensagem.textContent += `\n🎉 Preparando próximo capítulo...`;
+            }
+        }
+        
+        setTimeout(novaPalavra, 3000); 
+      }
+    }
+
+    botaoCorrigir.onclick = () => {
+      if (respostaAtual.length === 0) return;
+      let ultimaLetraIndex = letrasUsadas.pop();
+      respostaAtual = respostaAtual.slice(0, -1);
+      caixaResposta.textContent = respostaAtual;
+      containerLetras.children[ultimaLetraIndex].classList.remove('usada');
+      mensagem.textContent = "";
+    };
+
+    botaoDica.onclick = () => {
+      if (dicaUsada === 0) {
+        dicaUsada = 1;
+        botaoDica.disabled = false; 
+        let dica = dicasPoeticas[palavraAtual];
+        if (dica) {
+          dicaTexto.textContent = dica;
+          mensagem.textContent = "💡 Dica poética usada: pontuação será 5 pontos.";
+        } else {
+          dicaTexto.textContent = "Nenhuma dica disponível para esta palavra.";
+          mensagem.textContent = "";
+        }
+      } else if (dicaUsada === 1) {
+        dicaUsada = 2;
+        botaoDica.disabled = true; 
+
+        let primeiraLetra = palavraAtual[0].toUpperCase();
+        let dicaAtual = dicasPoeticas[palavraAtual] || ""; 
+        
+        dicaTexto.textContent = `${dicaAtual}\n🔑 A chave secreta que abre o mistério é a letra "${primeiraLetra}".`;
+        mensagem.textContent = "💡 Segunda dica usada: pontuação será 3 pontos.";
+      }
+    };
   </script>
 </body>
 </html>
